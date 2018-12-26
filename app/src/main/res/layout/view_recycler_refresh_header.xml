@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/pull_to_refresh_left"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/pull_to_refresh_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:singleLine="true"
+            android:text="下拉刷新"
+            android:textColor="#333333"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/pull_to_refresh_sub_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:singleLine="true"
+            android:textColor="#333333"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+
+    <FrameLayout
+        android:id="@+id/pull_to_refresh_right"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/pull_to_refresh_left">
+
+        <ImageView
+            android:id="@+id/pull_to_refresh_image"
+            android:layout_width="12dp"
+            android:layout_height="33dp"
+            android:layout_gravity="center"
+            android:scaleType="fitXY"
+            android:src="@drawable/ptr_arrow" />
+
+        <ProgressBar
+            android:id="@+id/pull_to_refresh_progress"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:indeterminateBehavior="repeat"
+            android:indeterminateDrawable="@drawable/loading"
+            android:indeterminateOnly="true"
+            android:visibility="visible" />
+
+    </FrameLayout>
+
+</merge>
