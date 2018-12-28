@@ -1,9 +1,12 @@
 package cn.refresh;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
+import android.view.View;
+import android.widget.Button;
 
 import cn.refresh.recycler.RecyclerViewEx;
 import cn.refresh.recycler.RefreshRecyclerView;
@@ -30,9 +33,16 @@ public class MainActivity extends AppCompatActivity {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                         mRefreshRecyclerView.onRefreshComplete();
+                        mRefreshRecyclerView.onRefreshComplete();
                     }
                 }, 2000);
+            }
+        });
+        Button mButton = findViewById(R.id.button);
+        mButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, MainActivity2.class));
             }
         });
     }

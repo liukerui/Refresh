@@ -6,14 +6,9 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <cn.refresh.recycler.RefreshRecyclerView
+    <cn.refresh.recycler2.RefreshRecyclerViewEx
         android:id="@+id/refresh_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-    <Button
-        android:id="@+id/button"
-        android:layout_width="90dp"
-        android:layout_height="90dp" />
 
 </android.support.constraint.ConstraintLayout>

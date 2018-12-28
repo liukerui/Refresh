@@ -23,8 +23,7 @@ public class IntAdapter extends RecyclerView.Adapter {
 
     @Override
     public int getItemCount() {
-        return 20
-                ;
+        return 120;
     }
 
     private static class IntViewHolder extends RecyclerView.ViewHolder {
