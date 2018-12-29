@@ -15,23 +15,16 @@
  */
 package cn.refresh.recycler2;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.support.annotation.NonNull;
-import android.support.v4.view.NestedScrollingChild;
-import android.support.v4.view.NestedScrollingChildHelper;
-import android.support.v4.view.NestedScrollingParent;
-import android.support.v4.view.NestedScrollingParentHelper;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.Transformation;
 
 import cn.refresh.recycler.RecyclerViewEx;
 import cn.refresh.recycler.RefreshRecyclerView;
@@ -76,37 +69,6 @@ public class RefreshRecyclerViewEx extends RecyclerViewEx {
     protected int mTo;
 
     boolean mNotify;
-
-    private Animation.AnimationListener mRefreshListener = new Animation.AnimationListener() {
-        @Override
-        public void onAnimationStart(Animation animation) {
-        }
-
-        @Override
-        public void onAnimationRepeat(Animation animation) {
-        }
-
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            if (mRefreshing) {
-                if (mNotify) {
-                    if (mTarget instanceof RefreshRecyclerView.State) {
-                        ((RefreshRecyclerView.State) mTarget).onRefreshing();
-                    }
-                    if (mListener != null) {
-                        mListener.onRefresh();
-                    }
-                }
-                ensureTarget();
-                if (mTarget == null) {
-                    return;
-                }
-                mCurrentTargetOffsetTop = mTarget.getLayoutParams().height;
-            } else {
-                reset();
-            }
-        }
-    };
 
     void reset() {
         ensureTarget();
@@ -187,7 +149,7 @@ public class RefreshRecyclerViewEx extends RecyclerViewEx {
             mRefreshing = refreshing;
             mNotify = true;
             setTargetOffsetTopAndBottom(mTargetHeight - mCurrentTargetOffsetTop);
-            mRefreshListener.onAnimationEnd(null);
+            mAnimatorListener.onAnimationEnd(null);
         } else {
             setRefreshing(refreshing, false /* notify */);
         }
@@ -198,9 +160,9 @@ public class RefreshRecyclerViewEx extends RecyclerViewEx {
             mNotify = notify;
             mRefreshing = refreshing;
             if (mRefreshing) {
-                animateOffsetToCorrectPosition(mRefreshListener);
+                animateOffsetToCorrectPosition(mAnimatorListener);
             } else {
-                animateOffsetToStartPosition(mRefreshListener);
+                animateOffsetToStartPosition(mAnimatorListener);
             }
         }
     }
@@ -211,15 +173,6 @@ public class RefreshRecyclerViewEx extends RecyclerViewEx {
      */
     public boolean isRefreshing() {
         return mRefreshing;
-    }
-
-    public void onRefreshComplete() {
-        postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                setRefreshing(false);
-            }
-        }, 200);
     }
 
     private void ensureTarget() {
@@ -301,7 +254,6 @@ public class RefreshRecyclerViewEx extends RecyclerViewEx {
         float dragPercent = Math.min(1f, Math.abs(originalDragPercent));
 
         float extraOS = Math.abs(overscrollTop) - mTargetHeight;
-//        float slingshotDist = overscrollTop > 0 ? 1200 : 300;
         float slingshotDist = mSpinnerFinalOffset - mTargetHeight;
         float tensionSlingshotPercent = Math.max(0, Math.min(extraOS, slingshotDist * 2) / slingshotDist);
         float tensionPercent = (float) ((tensionSlingshotPercent / 4) - Math.pow((tensionSlingshotPercent / 4), 2)) * 2f;
@@ -327,40 +279,77 @@ public class RefreshRecyclerViewEx extends RecyclerViewEx {
         }
     }
 
-    private void animateOffsetToCorrectPosition(Animation.AnimationListener listener) {
+    private void animateOffsetToCorrectPosition(Animator.AnimatorListener listener) {
         mFrom = mCurrentTargetOffsetTop;
         mTo = mTargetHeight;
 
         animateOffsetToPosition(mFrom, mTo, listener);
     }
 
-    private void animateOffsetToStartPosition(Animation.AnimationListener listener) {
+    private void animateOffsetToStartPosition(Animator.AnimatorListener listener) {
         mFrom = mCurrentTargetOffsetTop;
         mTo = 0;
 
         animateOffsetToPosition(mFrom, mTo, listener);
     }
 
-    private void animateOffsetToPosition(int from, int to, Animation.AnimationListener listener) {
+    private void animateOffsetToPosition(int from, int to, Animator.AnimatorListener listener) {
         mFrom = from;
         mTo = to;
 
-        mAnimateToPosition.reset();
-        mAnimateToPosition.setDuration(ANIMATE_TO_TRIGGER_DURATION);
-        mAnimateToPosition.setInterpolator(mDecelerateInterpolator);
-        mAnimateToPosition.setAnimationListener(listener);
-
-        mTarget.clearAnimation();
-        mTarget.startAnimation(mAnimateToPosition);
+        mTarget.animate()
+                .setDuration(ANIMATE_TO_TRIGGER_DURATION)
+                .setInterpolator(mDecelerateInterpolator)
+                .setUpdateListener(mAnimatorUpdateListener)
+                .setListener(mAnimatorListener)
+                .start();
     }
 
-    private final Animation mAnimateToPosition = new Animation() {
+    private final ValueAnimator.AnimatorUpdateListener mAnimatorUpdateListener = new ValueAnimator.AnimatorUpdateListener() {
         @Override
-        public void applyTransformation(float interpolatedTime, Transformation t) {
+        public void onAnimationUpdate(ValueAnimator valueAnimator) {
+            float interpolatedTime = valueAnimator.getAnimatedFraction();
             int targetTop = mFrom + (int) ((mTo - mFrom) * interpolatedTime);
 
             int offset = targetTop - mCurrentTargetOffsetTop;
             setTargetOffsetTopAndBottom(offset);
+        }
+    };
+
+    private final Animator.AnimatorListener mAnimatorListener = new Animator.AnimatorListener() {
+
+        @Override
+        public void onAnimationStart(Animator animator) {
+
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animator) {
+            if (mRefreshing) {
+                if (mNotify) {
+                    if (mTarget instanceof RefreshRecyclerView.State) {
+                        ((RefreshRecyclerView.State) mTarget).onRefreshing();
+                    }
+                    if (mListener != null) {
+                        mListener.onRefresh();
+                    }
+                }
+                ensureTarget();
+                if (mTarget == null) {
+                    return;
+                }
+                mCurrentTargetOffsetTop = mTarget.getLayoutParams().height;
+            } else {
+                reset();
+            }
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animator) {
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animator) {
         }
     };
 
