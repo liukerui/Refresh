@@ -33,7 +33,7 @@ public class MainActivity2 extends AppCompatActivity {
                         mRefreshRecyclerView.setRefreshing(false);
                         mIntAdapter.notifyDataSetChanged();
                     }
-                }, 1500);
+                }, 3500);
             }
         });
     }

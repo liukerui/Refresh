@@ -204,7 +204,7 @@ public class RefreshRecyclerViewEx extends RecyclerViewEx {
 
                 this.moveSpinner(this.mTotalUnconsumed);
                 Log.e("lkr", "A moveSpinner");
-//            return true;
+                return true;
             }
         }
 
@@ -226,7 +226,7 @@ public class RefreshRecyclerViewEx extends RecyclerViewEx {
 //        int dy = dyUnconsumed + this.mParentOffsetInWindow[1];
             int dy = dyUnconsumed;
 //        if (dy < 0 && !canScrollVertically(-1)) {  // 由于第一个高度为0的Item不能正确判断。
-            if (dy < 0) {
+            if (dy < 0 && type == 0) {  // type==0 拖动状态，非Fly状态
                 mTotalUnconsumed += (float) Math.abs(dy);
                 moveSpinner(mTotalUnconsumed);
                 Log.e("lkr", "B moveSpinner");
